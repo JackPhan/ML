@@ -1,0 +1,75 @@
+Machine learning algorithm to predict activity quality 
+========================================================
+## Executive Summary 
+I used Random Forest method for prediction algorithm model to predict 20 different test cases with 95% accuracy. It is also very accuracy comparing with other methods such as Trees with 54%.   
+
+## Build the model
+After trying some methods for predicting, I chose to use the Ramdon Forest that is the best accuracy method for predictive algorithm in this case. 
+
+## Exploratory data analysis
+Loading the training data set
+```{r}
+data = read.csv('pml-training.csv', na.strings=c("NA",""))
+```
+
+Remove NA columns
+```{r}
+dt <- data[,which(apply(data,2,function(x) {sum(is.na(x))}) == 0)]
+```
+
+Cross validation: split the training set
+```{r}
+library(caret)
+inTrain <- createDataPartition(y = dt$classe, p=0.1, list=FALSE)
+training <- dt[inTrain, ]
+testing <- dt[-inTrain, ]
+```
+
+Delete the unuseful predictors
+```{r}
+mydt <- training[, -grep("timestamp|X|user_name|new_window", names(training))]
+mydt1 <- testing[, -grep("timestamp|X|user_name|new_window", names(testing))]
+```
+ 
+## Expect the out of sample error
+Train the model
+```{r}
+modFit <- train(classe~ ., data=mydt, method="rf")
+modFit
+```
+
+The outcome is really good with 93% accuracy on train set while outcome of Trees method in this case is poor performent of 54% accuracy.
+
+## Estimate the error appropriately with cross-validation
+Test the model
+```{r}
+pre <- predict(modFit, mydt1)
+confusionMatrix(pre, mydt1$classe)
+```
+
+The outcome with cross-validation is even better with 96.98% accuracy. 
+
+## Use model to predict 20 different test cases
+Process the test set
+```{r}
+data1 = read.csv('pml-testing.csv', na.strings=c("NA",""))
+dt1 <- data1[,which(apply(data1,2,function(x) {sum(is.na(x))}) == 0)]
+test <- dt1[,-grep("timestamp|X|user_name|new_window",names(dt1))]
+```
+
+Predict new values
+```{r}
+predict(modFit,newdata=test)
+```
+
+After submitting 20 test cases for marking, I got 19/20 points (95% accuracy as same as expectation of the out of sample error) 
+
+## Problems on model approach
+- Random forests are difficult to interpret but often very accurate
+- Care should be taken to avoid overfitting
+- Very low
+
+
+
+
+
